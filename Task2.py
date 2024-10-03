@@ -35,7 +35,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch_geometric
-
+from torch_geometric.nn.conv.gcn_conv import GCNConv
 
 ## Load Cora dataset
 ## https://pytorch-geometric.readthedocs.io/en/latest/generated/torch_geometric.datasets.Planetoid.html#torch_geometric.datasets.Planetoid
@@ -43,7 +43,7 @@ import torch_geometric
 ## Nodes (2708) mean scientific publications and edges (10556) mean citation relationships. Each node has a predefined feature with 1433 dimensions.
 ##TODO
 ##===
-
+dataset = torch_geometric.datasets.Planetoid('/tmp/Cora', 'Cora', split='public')
 ##===
 g = dataset[0]
 
@@ -65,23 +65,22 @@ from torch_geometric.nn import GCNConv
 class GCN(nn.Module):
     def __init__(self, in_dimension, hidden_dimension, num_classes):
         super(GCN, self).__init__()
-        ##TODO
+        ##TODO``
         ##=== 3-layer GCN model
-
-
-
+        self.conv1 = GCNConv(in_dimension, hidden_dimension)
+        self.conv2 = GCNConv(hidden_dimension, hidden_dimension)
+        self.conv3 = GCNConv(hidden_dimension, num_classes)
         ##===
 
     def forward(self, g):
         h, edge_index = g.x, g.edge_index
         ##TODO
         ##=== Apply F.relu to 1st and 2nd layer.
-
-
-
-
-
-
+        h = self.conv1(h, edge_index)
+        h = F.relu(h)
+        h = self.conv2(h, edge_index)
+        h = F.relu(h)
+        h = self.conv3(h, edge_index)
         ##===
         return F.log_softmax(h, dim=1)
 

@@ -47,7 +47,7 @@ torch.manual_seed(1)
 ## Nodes (3327) mean scientific publications and edges (9104) mean citation relationships. Each node has a predefined feature with 3703 dimensions.
 ##TODO
 ##===
-
+dataset = torch_geometric.datasets.Planetoid('/tmp/CiteSeer', 'CiteSeer', split='full')
 ##===
 
 g = dataset[0]
@@ -119,15 +119,15 @@ g = g.to(device)
 ##TODO (Tune the hyperparameters below)
 ##===
 # Set number of SAGEConv layers. You can choose any number >= 2.
-num_layers = 2
+num_layers = 3
 # Set hidden dimension. You can choose any positive number.
 hidden_dimension = 8
 # Set aggregator. You can choose 'mean' or 'max'.
 aggregator = 'mean'
 # Set learning rate. You can choose any positive number.
-learning_rate = 0.1
+learning_rate = 0.05
 # Set training epoch. You can choose any positive number.
-number_epoch = 20
+number_epoch = 200
 ##===
 
 model = GraphSAGE(dataset.num_node_features, hidden_dimension, dataset.num_classes, num_layers, aggregator).to(device)

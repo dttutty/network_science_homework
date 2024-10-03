@@ -38,29 +38,28 @@ import networkx as nx
 ## Create an undirected ER graph with 100 nodes and p=0.2 using networkx.
 ##TODO
 ##===
-
+G = nx.erdos_renyi_graph(100, 0.2, seed=1)
 ##===
 
 
 ## Convert the created nx graph to PyG graph
 ##TODO
 ##===
-
+data = torch_geometric.utils.from_networkx(G)
 ##===
 
 
 ## Add self loops
 ##TODO
 ##===
-
+data.edge_index, _ = torch_geometric.utils.add_self_loops(data.edge_index)
 ##===
 
 
 ## Print out results
 ##TODO
 ##===
-
-
-
-
+print("Number of nodes: ", data.num_nodes)
+print("Number of edges: ", data.num_edges)
+print("Has self loops?: ", data.has_self_loops())
 ##===

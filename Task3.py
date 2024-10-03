@@ -37,7 +37,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch_geometric
-
+import torch_geometric.loader
 
 ## Load PubMed dataset
 ## https://pytorch-geometric.readthedocs.io/en/latest/modules/datasets.html#torch_geometric.datasets.Planetoid
@@ -45,7 +45,7 @@ import torch_geometric
 ## Nodes (19717) mean scientific publications and edges (88648) mean citation relationships. Each node has a predefined feature with 500 dimensions.
 ##TODO
 ##===
-
+dataset = torch_geometric.datasets.Planetoid('/tmp/PubMed', 'PubMed')
 ##===
 g = dataset[0]
 
@@ -67,12 +67,13 @@ g = g.to(device)
 ## https://pytorch-geometric.readthedocs.io/en/latest/modules/loader.html#torch_geometric.loader.NeighborSampler
 ##TODO
 ##===
-train_loader =
+train_loader = torch_geometric.loader.NeighborSampler(g.edge_index, node_idx=None, sizes=[25, 10], batch_size=128, shuffle=True, num_workers=0)
 
 ##===
 test_loader = torch_geometric.loader.NeighborSampler(g.edge_index, node_idx=None, sizes=[-1],
                                 batch_size=128, shuffle=False, num_workers=0)
 
+import torch_geometric.datasets
 from torch_geometric.nn import SAGEConv
 
 class Minibatch_GraphSAGE(nn.Module):
@@ -83,8 +84,8 @@ class Minibatch_GraphSAGE(nn.Module):
         self.layers = torch.nn.ModuleList()
         ##TODO
         ##=== Append two SAGEConv layers with 'max' aggregator.
-
-
+        self.layers.append(SAGEConv(in_dimension, hidden_dimension))
+        self.layers.append(SAGEConv(hidden_dimension, num_classes))
         ##===
 
     def forward(self, h, adjs):
