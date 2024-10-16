@@ -62,4 +62,5 @@ data.edge_index, _ = torch_geometric.utils.add_self_loops(data.edge_index)
 print("Number of nodes: ", data.num_nodes)
 print("Number of edges: ", data.num_edges)
 print("Has self loops?: ", data.has_self_loops())
+print("Is directed?: ", data.is_directed())
 ##===

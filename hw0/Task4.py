@@ -108,12 +108,13 @@ def train(g, model, lr, n_epoch):
             best_val_acc = val_acc
             best_test_acc = test_acc
 
-        if epoch % 1 == 0:
-            print('In epoch {}, loss: {:.3f}, val acc: {:.3f} (best {:.3f}), test acc: {:.3f} (best {:.3f})'.format(
-                epoch, loss, val_acc, best_val_acc, test_acc, best_test_acc))
+        # if epoch % 100 == 0:
+        #     print('In epoch {}, loss: {:.3f}, val acc: {:.3f} (best {:.3f}), test acc: {:.3f} (best {:.3f})'.format(
+        #         epoch, loss, val_acc, best_val_acc, test_acc, best_test_acc))
+    return best_val_acc
 
 
-device = torch.device('cpu')
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 g = g.to(device)
 
 ##TODO (Tune the hyperparameters below)
@@ -121,7 +122,7 @@ g = g.to(device)
 # Set number of SAGEConv layers. You can choose any number >= 2.
 num_layers = 3
 # Set hidden dimension. You can choose any positive number.
-hidden_dimension = 8
+hidden_dimension = 16
 # Set aggregator. You can choose 'mean' or 'max'.
 aggregator = 'mean'
 # Set learning rate. You can choose any positive number.
@@ -130,6 +131,33 @@ learning_rate = 0.05
 number_epoch = 200
 ##===
 
-model = GraphSAGE(dataset.num_node_features, hidden_dimension, dataset.num_classes, num_layers, aggregator).to(device)
+import optuna
+from concurrent.futures import ThreadPoolExecutor
 
-train(g, model, learning_rate, number_epoch)
+def objective(trial):
+    num_layers = trial.suggest_categorical('num_layers', [2,3])
+    hidden_dimension = trial.suggest_categorical('hidden_dimension', [8, 16, 32, 64, 128])
+    aggregator = trial.suggest_categorical('aggregator', ['mean', 'max'])
+    learning_rate = trial.suggest_float('learning_rate', 1e-6, 1e-1, log=True)
+    number_epoch = trial.suggest_int('number_epoch', 50, 300)
+
+    model = GraphSAGE(dataset.num_node_features, hidden_dimension, dataset.num_classes, num_layers, aggregator).to(device)
+    result = train(g, model, learning_rate, number_epoch)
+    
+    return result 
+
+
+study = optuna.create_study(direction='maximize')  # maximize 或 minimize
+# study.optimize(objective, n_trials=1000)  
+
+
+def optimize_with_threads(total_trials, num_threads):
+    trials_per_thread = total_trials // num_threads 
+    with ThreadPoolExecutor(max_workers=num_threads) as executor:
+        futures = [executor.submit(study.optimize, objective, n_trials=trials_per_thread) for _ in range(num_threads)]
+        for future in futures:
+            future.result() 
+
+optimize_with_threads(total_trials=1000, num_threads=5)
+
+print(study.best_params)

@@ -84,8 +84,8 @@ class Minibatch_GraphSAGE(nn.Module):
         self.layers = torch.nn.ModuleList()
         ##TODO
         ##=== Append two SAGEConv layers with 'max' aggregator.
-        self.layers.append(SAGEConv(in_dimension, hidden_dimension))
-        self.layers.append(SAGEConv(hidden_dimension, num_classes))
+        self.layers.append(SAGEConv(in_dimension, hidden_dimension,aggr='max'))
+        self.layers.append(SAGEConv(hidden_dimension, num_classes,aggr='max'))
         ##===
 
     def forward(self, h, adjs):

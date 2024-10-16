@@ -78,8 +78,10 @@ class GCN(nn.Module):
         ##=== Apply F.relu to 1st and 2nd layer.
         h = self.conv1(h, edge_index)
         h = F.relu(h)
+        h = F.dropout(h, training=self.training)
         h = self.conv2(h, edge_index)
         h = F.relu(h)
+        h = F.dropout(h, training=self.training)
         h = self.conv3(h, edge_index)
         ##===
         return F.log_softmax(h, dim=1)
